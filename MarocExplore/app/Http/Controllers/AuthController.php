@@ -5,9 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AuthRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
-use Spatie\FlareClient\Http\Response;
 
 class AuthController extends Controller
 {
@@ -22,8 +21,8 @@ class AuthController extends Controller
             'email' => $fields['email'],
             'password' => Hash::make($request->password),
         ]);
-        // $token = $this->createToken($user);
-        return response([$user], 201);
+        $token = $this->createToken($user);
+        return response([$user, $token], 201);
     }
     public function login(Request $request)
     {
@@ -41,5 +40,14 @@ class AuthController extends Controller
         $jwt = $this->createToken($token);
         return response([$user, $jwt], 200);
     }
- 
+    protected function createToken($token)
+    {
+        return response([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            // 'expires_in' => auth()->factory()->getTTL() * 60,
+            'user' => auth()->user()
+        ], 200);
+    }
+    
 }
