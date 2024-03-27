@@ -18,13 +18,18 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function () {
-    // return $request->user();
-});
-Route::post('/register', [AuthController::class,'register']);
-Route::post('/login', [AuthController::class,'login']);
-Route::post('/store', [ItineraryController::class,'store']);
+// Route::middleware('auth:sanctum')->get('/user', function () {
+//     // return $request->user();
+// });
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/itineraries', [ItineraryController::class, 'index']);
+Route::get('/search', [ItineraryController::class, 'search']);
 
-Route::get('/Route',function(){
-    return 'route';
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/store', [ItineraryController::class, 'store']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/route', function () {
+        return 'route';
+    });
 });

@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Category;
+use App\Models\Destination;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -18,5 +21,9 @@ class Itinerary extends Model
     public function destinations()
     {
         return $this->hasMany(Destination::class);
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

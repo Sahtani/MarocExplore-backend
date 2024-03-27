@@ -6,23 +6,33 @@ use App\Http\Requests\AuthRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
-{
+{ 
     public function register(AuthRequest $request)
     {
         $fields = $request->validated();
         $image = explode('/', $fields['image']->store('public/usersImages'));
         $user = User::create([
             'name' => $fields['name'],
-            'username' => $fields['username'],
             'image' => $image[2],
             'email' => $fields['email'],
             'password' => Hash::make($request->password),
         ]);
-        $token = $this->createToken($user);
-        return response([$user, $token], 201);
+        $token = $user->createToken('API Token')->plainTextToken;
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'User created successfully',
+        'user' => $user,
+        'authorization' => [
+            'token' => $token,
+            'type' => 'Bearer',
+        ]
+    ]);
     }
     public function login(Request $request)
     {
@@ -37,17 +47,22 @@ class AuthController extends Controller
         if(!$token = auth()->attempt($fields)) {
             return response(['error' => 'Unauthorized'], 401);
         }
-        $jwt = $this->createToken($token);
-        return response([$user, $jwt], 200);
+        $token = $user->createToken('API Token')->plainTextToken;
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'User created successfully',
+        'user' => $user,
+        'authorization' => [
+            'token' => $token,
+            'type' => 'Bearer',
+        ]
+    ]);
     }
-    protected function createToken($token)
+    public function logout(Request $request) : Response
     {
-        return response([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            // 'expires_in' => auth()->factory()->getTTL() * 60,
-            'user' => auth()->user()
-        ], 200);
+        auth()->user()->tokens()->delete();
+        return response('You Logged Out!', 200);
     }
     
 }

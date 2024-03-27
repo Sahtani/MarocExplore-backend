@@ -23,7 +23,6 @@ class AuthRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:100',
-            'username' => 'required|string|max:100',
             'image' => 'required|image',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string'
