@@ -25,6 +25,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/itineraries', [ItineraryController::class, 'index']);
 Route::get('/search', [ItineraryController::class, 'search']);
+Route::get('/filter', [ItineraryController::class, 'filter']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/store', [ItineraryController::class, 'store']);

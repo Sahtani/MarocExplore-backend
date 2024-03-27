@@ -75,26 +75,56 @@ class ItineraryController extends Controller
     }
     public function search(Request $request)
     {
-        // Retrieve search criteria from the request
         $category = $request->input('category');
-        $duration = '4 days';
+        $duration = $request->input('duration');
 
-        // Query itineraries based on the provided search criteria
         $query = Itinerary::query();
         
-        // if ($category) {
-        //     $query->where('category', 'like', '%' . $category . '%');
-        // }
+        if ($category) {
+            $query->where('category_id', 'like', '%' . $category . '%');
+        }
         
         if ($duration) {
             $query->where('duration', 'like', '%' . $duration . '%');
         }
 
         $itineraries = $query->get();
-
-        // Return the filtered itineraries
-        return response()->json(['itineraries' => $itineraries]);
+        if ($itineraries->count() > 0) {
+            return response()->json(['itineraries' => $itineraries]);
+        } else {
+            return response()->json(['message' => 'No itineraries found.'], 404);
+        }
+       
     }
+    public function filter(Request $request)
+    {
+        $request->validate([
+            'categorie' => 'sometimes|string|max:255',
+            'duree' => 'sometimes|string|max:255',
+        ]);
+
+        $categorie = $request->input('category');
+        $duration = $request->input('duration');
+
+        $query = Itinerary::query();
+
+        if ($categorie) {
+            $query->where('category', $categorie);
+        }
+
+        if ($duration) {
+            $query->where('duration', $duration);
+        }
+
+        $itineraires = $query->get();
+
+        if ($itineraires->count() > 0) {
+            return response()->json(['itineraires' => $itineraires]);
+        } else {
+            return response()->json(['message' => 'No itineraries found.'], 404);
+        }
+    }
+
    
 }
 
