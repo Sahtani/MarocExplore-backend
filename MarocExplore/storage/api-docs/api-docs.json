@@ -1,0 +1,90 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "My API",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/itineraries": {
+            "get": {
+                "tags": [
+                    "Itineraries"
+                ],
+                "summary": "Get a list of Itineraries",
+                "operationId": "86675d12475f84f785e7563fa8b8a0d9",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "400": {
+                        "description": "Invalid request"
+                    }
+                }
+            }
+        },
+        "/api/store": {
+            "post": {
+                "tags": [
+                    "Itineraries"
+                ],
+                "summary": "Create a new itinerary",
+                "operationId": "debab8723739d42bb80346463c940430",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "category_id",
+                                    "duration",
+                                    "image",
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Sample Itinerary"
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": "1"
+                                    },
+                                    "duration": {
+                                        "type": "string",
+                                        "example": "3 days"
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Itinerary added successfully."
+                    },
+                    "400": {
+                        "description": "Invalid request body or parameters"
+                    }
+                },
+                "security": {
+                    "bearerAuth": {}
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    }
+}

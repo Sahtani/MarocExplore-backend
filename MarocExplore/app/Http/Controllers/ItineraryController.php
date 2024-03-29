@@ -11,7 +11,13 @@ use Symfony\Component\HttpFoundation\Response;
 class ItineraryController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/itineraries",
+     *     summary="Get a list of Itineraries",
+     *     tags={"Itineraries"},
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=400, description="Invalid request")
+     * )
      */
     public function index()
     {
@@ -19,22 +25,42 @@ class ItineraryController extends Controller
         
         return response()->json(['itineraries' => $itineraries], Response::HTTP_OK);
     }
+
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *     path="/api/store",
+     *     security={"bearerAuth": {}},
+     *     summary="Create a new itinerary",
+     *     tags={"Itineraries"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"title", "category_id", "duration", "image", "user_id"},
+     *             @OA\Property(property="title", type="string", example="Sample Itinerary"),
+     *             @OA\Property(property="category_id", type="integer", example="1"),
+     *             @OA\Property(property="duration", type="string", example="3 days"),
+     *             @OA\Property(property="image", type="string", format="binary")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Itinerary added successfully."),
+     *     @OA\Response(response=400, description="Invalid request body or parameters")
+     * )
      */
     public function store(Request $request)
-    {  $userId = Auth::id();
+    {  
+        $userId = Auth::id();
         $request->validate([
             'title' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'duration' => 'required|string|max:255',
             'image' => 'required|image',
-            'user_id' => $userId,
         ]);
-
+       
         // Save the image
         $imagePath = explode('/', $request['image']->store('public/Images'));
-      
+
+        $request['user_id'] = $userId;
+       
         // Create the itinerary
         $itinerary = new Itinerary();
         $itinerary->title = $request->title;
@@ -73,6 +99,8 @@ class ItineraryController extends Controller
     {
         //
     }
+    
+    
     public function search(Request $request)
     {
         $category = $request->input('category');
