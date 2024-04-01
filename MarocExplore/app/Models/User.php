@@ -45,15 +45,22 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-    public function getJWTIdentifier () {
+    public function getJWTIdentifier()
+    {
         return $this->getKey();
-     }
-    
-     public function getJWTCustomClaims () {
+    }
+
+    public function getJWTCustomClaims()
+    {
         return [];
-     }
-     public function itineraries()
-     {
-         return $this->hasMany(Itinerary::class);
-     }
+    }
+    public function itineraries()
+    {
+        return $this->hasMany(Itinerary::class);
+    }
+    public function favoris()
+    {
+        return $this->belongsToMany(Itinerary::class, 'favoris', 'user_id', 'itinerary_id')->withTimestamps();
+    }
+    
 }

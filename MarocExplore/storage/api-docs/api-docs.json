@@ -5,6 +5,172 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a new user",
+                "operationId": "8a56853624e025573120a09a4c75d468",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "description": "User Name",
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "description": "User Email",
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "password": {
+                                        "description": "User Password",
+                                        "type": "string",
+                                        "format": "password"
+                                    },
+                                    "image": {
+                                        "description": "User Image",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "password_confirmation": {
+                                        "description": "User Password Confirmation",
+                                        "type": "string",
+                                        "format": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User registered successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                }
+            }
+        },
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Authenticate user and generate JWT token",
+                "operationId": "a3b306d14572d1f4bd6c064b3233e7b8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful login"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout the authenticated user",
+                "operationId": "fe8f3429cd6979b3b4517e186505f9f9",
+                "responses": {
+                    "200": {
+                        "description": "Successfully logged out",
+                        "content": {
+                            "text/plain": {
+                                "example": "You Logged Out!"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/itineraries/{itineraryId}/visited": {
+            "post": {
+                "tags": [
+                    "Favorites"
+                ],
+                "summary": "Add itinerary to visited list",
+                "operationId": "5be8e495787a02e2154a08689df5eb20",
+                "parameters": [
+                    {
+                        "name": "itineraryId",
+                        "in": "path",
+                        "description": "ID of the itinerary",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Itinerary added to visited list successfully"
+                    },
+                    "401": {
+                        "description": "User not authenticated"
+                    },
+                    "404": {
+                        "description": "Itinerary not found"
+                    },
+                    "422": {
+                        "description": "Itinerary is already in visited list"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/itineraries": {
             "get": {
                 "tags": [
@@ -74,6 +240,167 @@
                 },
                 "security": {
                     "bearerAuth": {}
+                }
+            }
+        },
+        "/api/itineraries/{id}": {
+            "put": {
+                "tags": [
+                    "Itineraries"
+                ],
+                "summary": "Update an itinerary",
+                "operationId": "6c2bd72ca2c9fccd61ef1297b4c0b1a4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the itinerary to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Data to update the itinerary",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "description": "Title of the itinerary (required)",
+                                        "type": "string"
+                                    },
+                                    "duration": {
+                                        "description": "Duration of the itinerary (required)",
+                                        "type": "string"
+                                    },
+                                    "image": {
+                                        "description": "Image file for the itinerary (optional)",
+                                        "type": "file",
+                                        "format": "binary"
+                                    },
+                                    "category_id": {
+                                        "description": "ID of the category for the itinerary (required)",
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Itinerary updated successfully"
+                    },
+                    "400": {
+                        "description": "Invalid request"
+                    },
+                    "404": {
+                        "description": "Itinerary not found"
+                    }
+                },
+                "security": {
+                    "bearerAuth": {}
+                }
+            }
+        },
+        "/api/search": {
+            "get": {
+                "tags": [
+                    "Itineraries"
+                ],
+                "summary": "Search itineraries by category or duration",
+                "operationId": "943f34af48927de24ee27c859115a920",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "required": [
+                                            "category"
+                                        ],
+                                        "properties": {
+                                            "category": {
+                                                "type": "string",
+                                                "example": "Adventure"
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    {
+                                        "required": [
+                                            "duration"
+                                        ],
+                                        "properties": {
+                                            "duration": {
+                                                "type": "string",
+                                                "example": "3 days"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "No itineraries found"
+                    }
+                }
+            }
+        },
+        "/api/filter": {
+            "post": {
+                "tags": [
+                    "Itineraries"
+                ],
+                "summary": "Filter itineraries by category or duration",
+                "operationId": "34fee369547a3d0c58ce1f06b00b8f4c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "category",
+                                    "duration"
+                                ],
+                                "properties": {
+                                    "category": {
+                                        "type": "string",
+                                        "example": "Adventure"
+                                    },
+                                    "duration": {
+                                        "type": "string",
+                                        "example": "3 days"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "400": {
+                        "description": "Invalid request"
+                    },
+                    "404": {
+                        "description": "No itineraries found"
+                    }
                 }
             }
         }

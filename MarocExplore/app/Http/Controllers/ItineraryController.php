@@ -22,7 +22,6 @@ class ItineraryController extends Controller
     public function index()
     {
         $itineraries = Itinerary::all();
-        
         return response()->json(['itineraries' => $itineraries], Response::HTTP_OK);
     }
 
@@ -66,7 +65,8 @@ class ItineraryController extends Controller
         $itinerary->title = $request->title;
         $itinerary->category_id = $request->category_id;
         $itinerary->duration = $request->duration;
-        $itinerary->image = $imagePath;
+        $itinerary->image = $imagePath[2];
+        $itinerary->user_id = $userId;
        
         $itinerary->save();
 
@@ -81,16 +81,100 @@ class ItineraryController extends Controller
      */
     public function show(string $id)
     {
-      return 'text';
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
+ * @OA\Put(
+ *     path="/api/itineraries/{id}",
+ * 
+ *     security={"bearerAuth": {}},
+ *     summary="Update an itinerary",
+ *     tags={"Itineraries"},
+ *     @OA\Parameter(
+ *         name="id",
+ *         in="path",
+ *         description="ID of the itinerary to update",
+ *         required=true,
+ *         @OA\Schema(
+ *             type="integer",
+ *             format="int64"
+ *         )
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         description="Data to update the itinerary",
+ *         @OA\MediaType(
+ *             mediaType="multipart/form-data",
+ *             @OA\Schema(
+ *                 @OA\Property(
+ *                     property="title",
+ *                     type="string",
+ *                     description="Title of the itinerary (required)"
+ *                 ),
+ *                 @OA\Property(
+ *                     property="duration",
+ *                     type="string",
+ *                     description="Duration of the itinerary (required)"
+ *                 ),
+ *                 @OA\Property(
+ *                     property="image",
+ *                     type="file",
+ *                     format="binary",
+ *                     description="Image file for the itinerary (optional)"
+ *                 ),
+ *                 @OA\Property(
+ *                     property="category_id",
+ *                     type="integer",
+ *                     description="ID of the category for the itinerary (required)"
+ *                 )
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Itinerary updated successfully"
+ *     ),
+ *     @OA\Response(
+ *         response=400,
+ *         description="Invalid request"
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="Itinerary not found"
+ *     )
+ * )
+ */
+public function update(Request $request, $id)
+{
+    // Retrieve the itinerary to update
+    $itinerary = Itinerary::findOrfail($id);
+
+    // Check if the itinerary exists
+    if (!$itinerary) {
+        return response()->json(['message' => 'Itinerary not found'], 404);
     }
+
+    // Validate the request data
+    $validatedData = $request->validate([
+        'title' => 'required|string|max:255',
+        'duration' => 'required|string|max:255',
+        'image' => 'nullable|image',
+        'category_id' => 'required|exists:categories,id',
+    ]);
+
+    $itinerary->title = $validatedData['title'];
+    $itinerary->duration = $validatedData['duration'];
+    $itinerary->category_id = $validatedData['category_id'];
+
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('images');
+        $itinerary->image = $imagePath;
+    }
+
+    $itinerary->save();
+
+    return response()->json(['message' => 'Itinerary updated successfully', 'itinerary' => $itinerary]);
+}
 
     /**
      * Remove the specified resource from storage.
@@ -100,7 +184,32 @@ class ItineraryController extends Controller
         //
     }
     
-    
+    /**
+     * @OA\Get(
+     *     path="/api/search",
+     *     summary="Search itineraries by category or duration",
+     *     tags={"Itineraries"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             oneOf={
+     *                 @OA\Schema(
+     *                     type="object",
+     *                     required={"category"},
+     *                     @OA\Property(property="category", type="string", example="Adventure")
+     *                 ),
+     *                 @OA\Schema(
+     *                     type="object",
+     *                     required={"duration"},
+     *                     @OA\Property(property="duration", type="string", example="3 days")
+     *                 )
+     *             }
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=404, description="No itineraries found")
+     * )
+     */
     public function search(Request $request)
     {
         $category = $request->input('category');
@@ -124,11 +233,30 @@ class ItineraryController extends Controller
         }
        
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/filter",
+     *     summary="Filter itineraries by category or duration",
+     *     tags={"Itineraries"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"category", "duration"},
+     *             @OA\Property(property="category", type="string", example="Adventure"),
+     *             @OA\Property(property="duration", type="string", example="3 days")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Successful operation"),
+     *     @OA\Response(response=400, description="Invalid request"),
+     *     @OA\Response(response=404, description="No itineraries found")
+     * )
+     */    
     public function filter(Request $request)
     {
         $request->validate([
             'categorie' => 'sometimes|string|max:255',
-            'duree' => 'sometimes|string|max:255',
+            'duration' => 'sometimes|string|max:255',
         ]);
 
         $categorie = $request->input('category');

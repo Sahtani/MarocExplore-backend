@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 class Itinerary extends Model
 {
     use HasFactory;
-    protected $fillable = ['title', 'category_id', 'duration', 'image'];
+    protected $fillable = ['title', 'category_id', 'duration', 'image','user_id'];
 
     public function category()
     {
@@ -25,5 +25,9 @@ class Itinerary extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function users()
+    {
+        return $this->belongsToMany(User::class);
     }
 }
