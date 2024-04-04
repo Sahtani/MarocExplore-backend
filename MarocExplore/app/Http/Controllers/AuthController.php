@@ -135,11 +135,12 @@ class AuthController extends Controller
      *     }
      * )
      */
-    public function logout(Request $request) : Response
+    public function logout(Request $request) 
     {
         auth()->user()->tokens()->delete();
-        return response('You Logged Out!', 200);
+        return response()->json(['message' => 'You Logged Out!'], 200);
     }
+    
 
     protected function createToken($token) : Response
     {

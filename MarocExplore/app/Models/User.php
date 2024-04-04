@@ -62,5 +62,6 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(Itinerary::class, 'favoris', 'user_id', 'itinerary_id')->withTimestamps();
     }
+   
     
 }

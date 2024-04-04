@@ -35,31 +35,24 @@ class FavorisController extends Controller
      */
     public function addToVisited(Request $request, $itineraryId)
     {
-        // Retrieve the authenticated user
-        $user = Auth::user();
+        $user = User::find(Auth::user()->id);
 
-        // Check if the user exists
         if (!$user) {
             return response()->json(['message' => 'User not authenticated'], 401);
         }
 
-        // Retrieve the itinerary
         $itinerary = Itinerary::find($itineraryId);
 
-        // Check if the itinerary exists
         if (!$itinerary) {
             return response()->json(['message' => 'Itinerary not found'], 404);
         }
 
-        // Check if the itinerary is already in the user's visited list
         if ($user->favoris()->where('itinerary_id', $itineraryId)->exists()) {
             return response()->json(['message' => 'Itinerary is already in visited list'], 422);
         }
 
-        // Add the itinerary to the user's visited list
         $user->favoris()->attach($itineraryId);
 
-        // Return a success response
         return response()->json(['message' => 'Itinerary added to visited list successfully']);
     }
 }

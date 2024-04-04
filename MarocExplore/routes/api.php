@@ -26,12 +26,14 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login'])->name("login");
 
+Route::get('/itineraries', [ItineraryController::class, 'index']);
+
+Route::get('/search', [ItineraryController::class, 'search']);
+
+Route::get('/filter', [ItineraryController::class, 'filter']);
+
 Route::middleware('auth:api')->group(function () {
-    Route::get('/itineraries', [ItineraryController::class, 'index']);
-
-    Route::get('/search', [ItineraryController::class, 'search']);
-
-    Route::get('/filter', [ItineraryController::class, 'filter']);
+   
 
     Route::post('/store', [ItineraryController::class, 'store']);
 

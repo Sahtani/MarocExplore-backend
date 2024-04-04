@@ -361,12 +361,12 @@
             }
         },
         "/api/filter": {
-            "post": {
+            "get": {
                 "tags": [
                     "Itineraries"
                 ],
                 "summary": "Filter itineraries by category or duration",
-                "operationId": "34fee369547a3d0c58ce1f06b00b8f4c",
+                "operationId": "67ca05437eb3c02e32635ce1d8491b53",
                 "requestBody": {
                     "required": true,
                     "content": {

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Destination;
 use App\Models\Itinerary;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +23,7 @@ class ItineraryController extends Controller
      */
     public function index()
     {
-        $itineraries = Itinerary::all();
+        $itineraries = Itinerary::with('destinations')->get();
         return response()->json(['itineraries' => $itineraries], Response::HTTP_OK);
     }
 
@@ -46,31 +48,46 @@ class ItineraryController extends Controller
      * )
      */
     public function store(Request $request)
-    {  
+    {
         $userId = Auth::id();
         $request->validate([
             'title' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
-            'duration' => 'required|string|max:255',
-            'image' => 'required|image',
+            'duration' => 'required|integer',
+            'image' => 'required',
+            'destinations' => 'required|array|min:2', // At least one destination is required
+            'destinations.*.name' => 'required|string|max:255',
+            'destinations.*.accommodation' => 'required|string|max:255',
+            'destinations.*.places' => 'nullable|string',
+            'destinations.*.activities' => 'nullable|string',
+            'destinations.*.dishes' => 'nullable|string',
         ]);
-       
+
         // Save the image
-        $imagePath = explode('/', $request['image']->store('public/Images'));
+        // $imagePath = explode('/', $request['image']->store('public/Images'));
 
         $request['user_id'] = $userId;
-       
+
         // Create the itinerary
         $itinerary = new Itinerary();
         $itinerary->title = $request->title;
         $itinerary->category_id = $request->category_id;
         $itinerary->duration = $request->duration;
-        $itinerary->image = $imagePath[2];
+        $itinerary->image = "imagePath[2]";
         $itinerary->user_id = $userId;
-       
+
         $itinerary->save();
 
-       
+        foreach ($request->destinations as $destinationData) {
+            $destination = new Destination();
+            $destination->name = $destinationData['name'];
+            $destination->accommodation = $destinationData['accommodation'];
+            $destination->places = $destinationData['places'];
+            $destination->activities = $destinationData['activities'];
+            $destination->dishes = $destinationData['dishes'];
+            $destination->itinerary_id = $itinerary->id;
+            $destination->save();
+        }
 
         return response()->json(['message' => 'Itinerary added successfully.'], 201);
     }
@@ -84,97 +101,104 @@ class ItineraryController extends Controller
     }
 
     /**
- * @OA\Put(
- *     path="/api/itineraries/{id}",
- * 
- *     security={"bearerAuth": {}},
- *     summary="Update an itinerary",
- *     tags={"Itineraries"},
- *     @OA\Parameter(
- *         name="id",
- *         in="path",
- *         description="ID of the itinerary to update",
- *         required=true,
- *         @OA\Schema(
- *             type="integer",
- *             format="int64"
- *         )
- *     ),
- *     @OA\RequestBody(
- *         required=true,
- *         description="Data to update the itinerary",
- *         @OA\MediaType(
- *             mediaType="multipart/form-data",
- *             @OA\Schema(
- *                 @OA\Property(
- *                     property="title",
- *                     type="string",
- *                     description="Title of the itinerary (required)"
- *                 ),
- *                 @OA\Property(
- *                     property="duration",
- *                     type="string",
- *                     description="Duration of the itinerary (required)"
- *                 ),
- *                 @OA\Property(
- *                     property="image",
- *                     type="file",
- *                     format="binary",
- *                     description="Image file for the itinerary (optional)"
- *                 ),
- *                 @OA\Property(
- *                     property="category_id",
- *                     type="integer",
- *                     description="ID of the category for the itinerary (required)"
- *                 )
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Itinerary updated successfully"
- *     ),
- *     @OA\Response(
- *         response=400,
- *         description="Invalid request"
- *     ),
- *     @OA\Response(
- *         response=404,
- *         description="Itinerary not found"
- *     )
- * )
- */
-public function update(Request $request, $id)
-{
-    // Retrieve the itinerary to update
-    $itinerary = Itinerary::findOrfail($id);
+     * @OA\Put(
+     *     path="/api/itineraries/{id}",
+     * 
+     *     security={"bearerAuth": {}},
+     *     summary="Update an itinerary",
+     *     tags={"Itineraries"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID of the itinerary to update",
+     *         required=true,
+     *         @OA\Schema(
+     *             type="integer",
+     *             format="int64"
+     *         )
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Data to update the itinerary",
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="title",
+     *                     type="string",
+     *                     description="Title of the itinerary (required)"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="duration",
+     *                     type="string",
+     *                     description="Duration of the itinerary (required)"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="image",
+     *                     type="file",
+     *                     format="binary",
+     *                     description="Image file for the itinerary (optional)"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="category_id",
+     *                     type="integer",
+     *                     description="ID of the category for the itinerary (required)"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Itinerary updated successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid request"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Itinerary not found"
+     *     )
+     * )
+     */
+    public function update(Request $request, $id)
+    {   
+        $user_id = Auth::user()->id;
+        // Retrieve the itinerary to update
+      
+        $itinerary = Itinerary::findOrfail($id);
 
-    // Check if the itinerary exists
-    if (!$itinerary) {
-        return response()->json(['message' => 'Itinerary not found'], 404);
+        // Check if the itinerary exists
+       
+            // return response()->json(['message' => 'error'], 401);
+        
+        if (!$itinerary) {
+            return response()->json(['message' => 'Itinerary not found'], 404);
+        }
+        if($itinerary['user_id']===$user_id ){
+            $validatedData = $request->validate([
+                'title' => 'required|string|max:255',
+                'duration' => 'required|integer|max:255',
+                'image' => 'nullable',
+                'category_id' => 'required|exists:categories,id',
+            ]);
+    
+            $itinerary->title = $validatedData['title'];
+            $itinerary->duration = $validatedData['duration'];
+            $itinerary->category_id = $validatedData['category_id'];
+    
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('images');
+                $itinerary->image = $imagePath;
+            }
+    
+            $itinerary->save();
+    
+            return response()->json(['message' => 'Itinerary updated successfully', 'itinerary' => $itinerary]);
+        }
+     
+        return response()->json(['message' => 'error']);
     }
-
-    // Validate the request data
-    $validatedData = $request->validate([
-        'title' => 'required|string|max:255',
-        'duration' => 'required|string|max:255',
-        'image' => 'nullable|image',
-        'category_id' => 'required|exists:categories,id',
-    ]);
-
-    $itinerary->title = $validatedData['title'];
-    $itinerary->duration = $validatedData['duration'];
-    $itinerary->category_id = $validatedData['category_id'];
-
-    if ($request->hasFile('image')) {
-        $imagePath = $request->file('image')->store('images');
-        $itinerary->image = $imagePath;
-    }
-
-    $itinerary->save();
-
-    return response()->json(['message' => 'Itinerary updated successfully', 'itinerary' => $itinerary]);
-}
 
     /**
      * Remove the specified resource from storage.
@@ -183,7 +207,7 @@ public function update(Request $request, $id)
     {
         //
     }
-    
+
     /**
      * @OA\Get(
      *     path="/api/search",
@@ -210,32 +234,75 @@ public function update(Request $request, $id)
      *     @OA\Response(response=404, description="No itineraries found")
      * )
      */
+    // public function search(Request $request)
+    // {
+    //     $category = $request->input('category');
+    //     $duration = $request->input('duration');
+
+    //     $query = Itinerary::query();
+
+    //     if ($category) {
+    //         $query->where('category_id', 'like', '%' . $category . '%');
+    //     }
+
+    //     if ($duration) {
+    //         $query->where('duration', 'like', '%' . $duration . '%');
+    //     }
+
+    //     $itineraries = $query->get();
+    //     if ($itineraries->count() > 0) {
+    //         return response()->json(['itineraries' => $itineraries]);
+    //     } else {
+    //         return response()->json(['message' => 'No itineraries found.'], 404);
+    //     }
+
+    // }
     public function search(Request $request)
     {
+        // Get input values
         $category = $request->input('category');
         $duration = $request->input('duration');
-
+        $title=$request->input('title');
+    
+        // Validate input
+        $request->validate([
+            'category' => 'nullable|string',
+            'duration' => 'nullable|string', 
+            'title'=> 'nullable|string'
+        ]);
+    
+        // Query itineraries
         $query = Itinerary::query();
-        
+    
+        // Apply filters
         if ($category) {
-            $query->where('category_id', 'like', '%' . $category . '%');
+            $query->whereHas('category_id', function ($query) use ($category) {
+                $query->where('name', 'like', '%' . $category . '%');
+            });
         }
         
         if ($duration) {
+            // Adjust this condition based on the actual data type of 'duration'
             $query->where('duration', 'like', '%' . $duration . '%');
         }
-
-        $itineraries = $query->get();
-        if ($itineraries->count() > 0) {
-            return response()->json(['itineraries' => $itineraries]);
-        } else {
+      if($title){
+        $query->where('title','like','%'. $title . '%');
+      }
+        // Eager load relationships to avoid N+1 query issues
+        $itineraries = $query->with('destinations')->get();
+    
+        // Check if any itineraries are found
+        if ($itineraries->isEmpty()) {
             return response()->json(['message' => 'No itineraries found.'], 404);
         }
-       
+    
+        // Return the result
+        return response()->json($itineraries);
     }
+   
 
     /**
-     * @OA\Post(
+     * @OA\Get(
      *     path="/api/filter",
      *     summary="Filter itineraries by category or duration",
      *     tags={"Itineraries"},
@@ -251,21 +318,25 @@ public function update(Request $request, $id)
      *     @OA\Response(response=400, description="Invalid request"),
      *     @OA\Response(response=404, description="No itineraries found")
      * )
-     */    
+     */
     public function filter(Request $request)
     {
-        $request->validate([
-            'categorie' => 'sometimes|string|max:255',
-            'duration' => 'sometimes|string|max:255',
-        ]);
+        // $request->validate([
+        //     'categorie' => 'sometimes|string|max:255',
+        //     'duration' => 'sometimes|string|max:255',
+        // ]);
 
-        $categorie = $request->input('category');
+        $categorie = $request->input('category_id');
         $duration = $request->input('duration');
 
         $query = Itinerary::query();
 
+        // if ($categorie) {
+        //     $query->where('category_id', $categorie);
+        // }
         if ($categorie) {
-            $query->where('category', $categorie);
+            // dd($categorie);
+                $query->where('category_id',$categorie);
         }
 
         if ($duration) {
@@ -280,7 +351,4 @@ public function update(Request $request, $id)
             return response()->json(['message' => 'No itineraries found.'], 404);
         }
     }
-
-   
 }
-
