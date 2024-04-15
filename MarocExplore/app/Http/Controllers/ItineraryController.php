@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Destination;
 use App\Models\Itinerary;
 use App\Models\User;
@@ -23,8 +24,18 @@ class ItineraryController extends Controller
      */
     public function index()
     {
-        $itineraries = Itinerary::with('destinations')->get();
+        $itineraries = Itinerary::with('destinations')->with('user')->with('category')->get();
         return response()->json(['itineraries' => $itineraries], Response::HTTP_OK);
+    }
+
+    public function categories()
+    {
+        $categories = Category::all();
+
+        return response()->json([
+            'status' => 'success',
+            'categories' => $categories,
+        ]);
     }
 
     /**
@@ -64,7 +75,8 @@ class ItineraryController extends Controller
         ]);
 
         // Save the image
-        // $imagePath = explode('/', $request['image']->store('public/Images'));
+        $imagePath = $request->file('image')->store('images', 'public');
+        $imageUrl = asset('storage/' . $imagePath);
 
         $request['user_id'] = $userId;
 
@@ -73,7 +85,7 @@ class ItineraryController extends Controller
         $itinerary->title = $request->title;
         $itinerary->category_id = $request->category_id;
         $itinerary->duration = $request->duration;
-        $itinerary->image = "imagePath[2]";
+        $itinerary->image = $imageUrl;
         $itinerary->user_id = $userId;
 
         $itinerary->save();

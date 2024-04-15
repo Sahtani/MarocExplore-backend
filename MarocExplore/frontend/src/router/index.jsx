@@ -4,6 +4,7 @@ import Login from "../pages/Login.jsx";
 import Register from "../pages/Register.jsx";
 import Iteneraries from "../pages/Itenraries.jsx";
 import NotFound from "../pages/NotFound.jsx";
+import Createitinerary from "../pages/Createitinerary.jsx";
 import DefaultLayout from "../layouts/DefaultLayout.jsx";
 
 
@@ -27,6 +28,11 @@ export const router = createBrowserRouter([
                 path: '/iteneraries',
         
                 element: <Iteneraries />
+            },
+            {
+                path: '/createitinerary',
+        
+                element: <Createitinerary />
             },
             {
                 path: '*',

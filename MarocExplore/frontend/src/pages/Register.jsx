@@ -43,6 +43,7 @@ export default function Register(){
             document.cookie = `ACCESS_TOKEN=${token};${expires};path=/`;
             navigate('/');
         }).catch(({response}) => {
+            console.log(response.data);
             const {message, errors} = response.data
             if(errors) {
                 setErrors(errors)

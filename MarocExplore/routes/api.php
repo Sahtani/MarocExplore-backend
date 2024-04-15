@@ -38,6 +38,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/store', [ItineraryController::class, 'store']);
 
     Route::patch('/update/{id}', [ItineraryController::class, 'update']);
+    Route::get('categories', [ItineraryController::class, 'categories']);
 
     Route::post('/itineraries/{id}/add-to-visited', [FavorisController::class, 'addToVisited']);
 
