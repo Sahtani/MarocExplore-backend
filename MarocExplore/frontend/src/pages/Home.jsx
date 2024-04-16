@@ -7,28 +7,10 @@ export default function Home() {
 
   const [itineraries, setItineraries] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [durationFilter, setDurationFilter] = useState("");
-
-  const [selectedCategory, setSelectedCategory] = useState("");
-
-  const [categories, setCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [duration, setDuration] = useState("");
+  const [categories, setCategories] = useState([]); // Added state for categories
   const token = getCookie('ACCESS_TOKEN');
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axiosClient.get("/categories");
-        setCategories(response.data.categories);
-      } catch (error) {
-        console.log("Error fetching categories:", error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,6 +23,19 @@ export default function Home() {
     };
 
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => { // Added useEffect to fetch categories
+      try {
+        const response = await axiosClient.get("/categories");
+        setCategories(response.data.categories);
+      } catch (error) {
+        console.log("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   // Fonction pour formater la date
@@ -56,35 +51,49 @@ export default function Home() {
 
   const handleSearch = async () => {
     try {
-
       if (searchQuery.trim() === "") {
-
         const response = await axiosClient.get("/itineraries");
         setItineraries(response.data);
       } else {
         const response = await axiosClient.get("/search", {
-
           params: {
             title: searchQuery,
           },
-
         });
         setItineraries(response.data);
         console.log(response.data);
       }
-
-      // console.log(response.data) 
     } catch (error) {
       console.error("Error searching itineraires:", error);
     }
   };
-  const handleCategoryFilterChange = (e) => {
-    setCategoryFilter(e.target.value);
+
+  const handleCategoryChange = (e) => { // Moved outside return block
+    setSelectedCategoryId(e.target.value);
   };
 
-  const handleDurationFilterChange = (e) => {
-    setDurationFilter(e.target.value);
+  const handleDurationChange = (e) => { // Moved outside return block
+    setDuration(e.target.value);
   };
+
+  const handleFilterClick = async () => {
+    try {
+      const response = await axiosClient.get(
+        "/filter",
+        {
+          params: {
+            category_id: selectedCategoryId,
+            duration: duration,
+          },
+        }
+      );
+      setItineraries(response.data.itineraires);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error filtering itineraires:", error);
+    }
+  };
+
   return (
     <>
       {token && (
@@ -115,39 +124,63 @@ export default function Home() {
           Search
         </button>
       </div>
-      <div className="ml-4">
-          <label htmlFor="category" className="block font-medium text-gray-700">Category:</label>
-          <select
-            id="category"
-            name="category"
-            value={selectedCategory}
-            onChange={handleCategoryFilterChange}
-            className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+      <div className="flex items-center justify-center gap-4">
+        <div className="flex flex-col">
+          <label
+            htmlFor="categorie"
+            className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
           >
-            <option value="">All</option>
-            {categories.map(category => (
-              <option key={category.id} value={category.id}>{category.name}</option>
+            Select Category
+          </label>
+          <select
+            id="categorie"
+            name="categorie_id"
+            value={selectedCategoryId}
+            onChange={handleCategoryChange}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+          >
+            <option value="">Select category</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
             ))}
           </select>
         </div>
-        <div className="ml-4">
-  <label htmlFor="duration" className="block font-medium text-gray-700">Duration (days):</label>
-  <input
-    type="number"
-    id="duration"
-    name="duration"
-    value={selectedDuration}
-    onChange={handleDurationChange}
-    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-    placeholder="Enter duration"
-  />
-</div>
+
+        <div className="flex flex-col">
+          <label
+            htmlFor="duration"
+            className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+          >
+            Duration (days)
+          </label>
+          <input
+            type="text"
+            id="duration"
+            name="duration"
+            value={duration}
+            onChange={handleDurationChange}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+            placeholder="Enter duration in days"
+            required=""
+          />
+        </div>
+        <button
+          onClick={handleFilterClick}
+          className="mt-7 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none"
+        >
+          Filter
+        </button>
+      </div>
 
       <div className="max-w-7xl mx-auto">
         <div className="text-center">
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 mt-16 max-md:max-w-lg mx-auto">
-          {itineraries && itineraries.map((itinerary, index) => (
+        {itineraries.length === 0 ? (
+            <div className="text-center text-gray-500">No itineraries found.</div>
+          ) : (itineraries && itineraries.map((itinerary, index) => (
             <div key={index} className="bg-white cursor-pointer rounded overflow-hidden shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] relative top-0 hover:-top-2 transition-all duration-300">
               <img src={`http://127.0.0.1:8000/storage/images/${itinerary.image}`} alt={`Blog Post ${index}`} className="w-full h-60 object-cover" />
               <div className="p-6">
@@ -181,7 +214,6 @@ export default function Home() {
                       </div>
                     </div>
                   ))}
-
                 </ul>
                 <hr className="my-6" />
                 <div className="flex gap-2">
@@ -192,11 +224,11 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          ))}
+         ))
+         )}
 
         </div>
       </div >
     </>
-
   );
 }

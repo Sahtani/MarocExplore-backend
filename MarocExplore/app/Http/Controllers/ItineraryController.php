@@ -354,7 +354,7 @@ class ItineraryController extends Controller
             $query->where('duration', $duration);
         }
 
-        $itineraires = $query->get();
+        $itineraires = $query->with('destinations')->with('user')->with('category')->get();
 
         if ($itineraires->count() > 0) {
             return response()->json(['itineraires' => $itineraires]);
