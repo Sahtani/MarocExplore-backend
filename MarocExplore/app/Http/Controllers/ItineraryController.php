@@ -174,41 +174,41 @@ class ItineraryController extends Controller
      * )
      */
     public function update(Request $request, $id)
-    {   
+    {
         $user_id = Auth::user()->id;
         // Retrieve the itinerary to update
-      
+
         $itinerary = Itinerary::findOrfail($id);
 
         // Check if the itinerary exists
-       
-            // return response()->json(['message' => 'error'], 401);
-        
+
+        // return response()->json(['message' => 'error'], 401);
+
         if (!$itinerary) {
             return response()->json(['message' => 'Itinerary not found'], 404);
         }
-        if($itinerary['user_id']===$user_id ){
+        if ($itinerary['user_id'] === $user_id) {
             $validatedData = $request->validate([
                 'title' => 'required|string|max:255',
                 'duration' => 'required|integer|max:255',
                 'image' => 'nullable',
                 'category_id' => 'required|exists:categories,id',
             ]);
-    
+
             $itinerary->title = $validatedData['title'];
             $itinerary->duration = $validatedData['duration'];
             $itinerary->category_id = $validatedData['category_id'];
-    
+
             if ($request->hasFile('image')) {
                 $imagePath = $request->file('image')->store('images');
                 $itinerary->image = $imagePath;
             }
-    
+
             $itinerary->save();
-    
+
             return response()->json(['message' => 'Itinerary updated successfully', 'itinerary' => $itinerary]);
         }
-     
+
         return response()->json(['message' => 'error']);
     }
 
@@ -274,44 +274,43 @@ class ItineraryController extends Controller
         // Get input values
         $category = $request->input('category');
         $duration = $request->input('duration');
-        $title=$request->input('title');
-    
+        $title = $request->input('title');
+
         // Validate input
         $request->validate([
             'category' => 'nullable|string',
-            'duration' => 'nullable|string', 
-            'title'=> 'nullable|string'
+            'duration' => 'nullable|string',
+            'title' => 'nullable|string'
         ]);
-    
+
         // Query itineraries
         $query = Itinerary::query();
-    
+
         // Apply filters
         if ($category) {
             $query->whereHas('category_id', function ($query) use ($category) {
                 $query->where('name', 'like', '%' . $category . '%');
             });
         }
-        
+
         if ($duration) {
             // Adjust this condition based on the actual data type of 'duration'
             $query->where('duration', 'like', '%' . $duration . '%');
         }
-      if($title){
-        $query->where('title','like','%'. $title . '%');
-      }
+        if ($title) {
+            $query->where('title', 'like', '%' . $title . '%');
+        }
         // Eager load relationships to avoid N+1 query issues
-        $itineraries = $query->with('destinations')->get();
-    
+        $itineraries = $query->with('destinations')->with('user')->with('category')->get();
         // Check if any itineraries are found
         if ($itineraries->isEmpty()) {
             return response()->json(['message' => 'No itineraries found.'], 404);
         }
-    
+
         // Return the result
         return response()->json($itineraries);
     }
-   
+
 
     /**
      * @OA\Get(
@@ -348,7 +347,7 @@ class ItineraryController extends Controller
         // }
         if ($categorie) {
             // dd($categorie);
-                $query->where('category_id',$categorie);
+            $query->where('category_id', $categorie);
         }
 
         if ($duration) {
